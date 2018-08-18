@@ -1,0 +1,53 @@
+:root {
+    --code-background: #182026;
+    --variable: #90DFF5;
+    --punctuation: #F5F8FA;
+    --keyword: #1F76AE;
+    --function: #FDED8C;
+    --runtime: #2EE6D6;
+    --text: #D25555; 
+    --operator: #C274C2;
+    --numeral: #D1F26D;
+    --comment: #266740;
+}
+
+pre {
+    background-color: var(--code-background);
+    margin: 2rem;
+}
+
+code {
+    color: var(--variable);
+}
+
+.cv-punctuation {
+    color: var(--punctuation);
+}
+
+.cv-keyword {
+    color: var(--keyword);
+}
+
+.cv-function {
+    color: var(--function);
+}
+
+.cv-runtime {
+    color: var(--runtime);
+}
+
+.cv-text {
+    color: var(--text);
+}
+
+.cv-operator {
+    color: var(--operator);
+}
+
+.cv-numeral {
+    color: var(--numeral);
+}
+
+.cv-comment {
+    color: var(--comment);
+}
