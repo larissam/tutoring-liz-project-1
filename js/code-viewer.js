@@ -5,6 +5,7 @@
 // - Add support for arrow functions
 // - Add support for template literals
 const codeBlocks = Array.from(document.getElementsByTagName("code"));
+
 const replacementMap = new Map([
   // white - punctuation
   // +, -, /, *, **, ^, &, |, <, >, {, }, [, ], ), ,, =
@@ -40,7 +41,18 @@ const replacementMap = new Map([
   [/\.\w+\(/g, "<span class='cv-function'>$&</span>"],
   // white - punctuation that needs to be put at the end (because of earlier regex)
   // ., (
-  [/[\.\(]/g, "<span class='cv-punctuation'>$&</span>"]
+  [/[\.\(]/g, "<span class='cv-punctuation'>$&</span>"],
+  [
+    /<span class='cv-punctuation'>\/<\/span><span class='cv-punctuation'>\/<\/span>.*\n/g,
+    "<span class='cv-comment'>$&</span>"
+  ],
+  // find comment type /* to */
+  // find comment type
+  // <span class='cv-punctuation'>/</span><span class='cv-punctuation'>*</span> to <span class='cv-punctuation'>*</span><span class='cv-punctuation'>/</span>
+  [
+    /<span class='cv-punctuation'>\/<\/span><span class='cv-punctuation'>\*<\/span>.*<span class='cv-punctuation'>\*<\/span><span class='cv-punctuation'>\/<\/span>/g,
+    "<span class='cv-comment'>$&</span>"
+  ]
 ]);
 
 codeBlocks.forEach(block => {
@@ -49,5 +61,32 @@ codeBlocks.forEach(block => {
     updatedText = updatedText.replace(regex, wrapperTemplate);
   });
 
+  // Remove the punctuation wrappers from the /* and */ inside the comment
+  const commentRegex = /<span class='cv-comment'><span class='cv-punctuation'>\/<\/span><span class='cv-punctuation'>\*<\/span>(.*)<span class='cv-punctuation'>\*<\/span><span class='cv-punctuation'>\/<\/span><\/span>/g;
+  updatedText = updatedText.replace(commentRegex, (match, inside) =>
+    withoutInnerTags(match, inside, "<span class='cv-comment'>/* $$$ */</span>")
+  );
+
+  // Remove the punctuation wrappers from the // inside the comment
+  const unwrappedCommentRegex = /<span class='cv-punctuation'>\/<\/span><span class='cv-punctuation'>\/<\/span>(.*\n)/g;
+  updatedText = updatedText.replace(unwrappedCommentRegex, (match, inside) =>
+    withoutInnerTags(match, inside, "<span class='cv-comment'>// $$$</span>")
+  );
+
   block.innerHTML = updatedText;
 });
+
+function withoutInnerTags(match, inside, template) {
+  const DELIMITER = "$$$";
+  const replacementRegex = /(<span class='cv-.*?'>.*?<\/span>)/g;
+  const nextInside = inside.replace(replacementRegex, function(
+    match,
+    ...matches
+  ) {
+    const replacementInsideRegex = /<span class='cv-.*?'>(.*?)<\/span>/g;
+    return match.replace(replacementInsideRegex, (match, window) => window);
+  });
+
+  const [prefix, suffix] = template.split(DELIMITER);
+  return `${prefix}${nextInside}${suffix}`;
+}
